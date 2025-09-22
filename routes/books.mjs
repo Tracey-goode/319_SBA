@@ -1,98 +1,93 @@
 import express from 'express';
-import { validator } from '../middleware/validate.mjs';
-import { readFile, writeFile } from 'fs/promises'; // 
+import Book from '../models/book.mjs';
+import Author from '../models/author.mjs';
+import Genre from '../models/genre.mjs';
 
 const router = express.Router();
-const bookPath = './data/books.json';
 
-async function readBooks() {
-    const data = await readFile(bookPath, 'utf-8');
-    return JSON.parse(data);
-}
-
-async function writeBooks(data) {
-    await writeFile(bookPath, JSON.stringify(data, null, 2));
-}
-
-
-// Gett
+// GET all books with filters
 router.get('/', async (req, res, next) => {
     try {
-        const books = await readBooks();
-        const { genre } = req.query;
-        const filtered = genre ? books.filter(book => book.genre === genre) : books;
-        res.render('books', {books: filtered });
+        const { genre, author } = req.query;
+        let query = {};
+        if (genre) {
+            const genreDoc = await Genre.findOne({ name: genre });
+            if (genreDoc) {
+                query.genre = genreDoc._id;
+            }
+        }
+        if (author) {
+            const authorDoc = await Author.findOne({ name: author });
+            if (authorDoc) {
+                query.author = authorDoc._id;
+            }
+        }
+
+        
+        const books = await Book.find(query).populate('author').populate('genre');
+        res.render('books', { books });
     } catch (err) {
-        next (err);
+        next(err);
     }
 });
 
-// GET new book form
-router.get('/new', (req, res) => {
-    res.render('add-book');
+// GET form to add a new book
+router.get('/new', async (req, res, next) => {
+    try {
+        const authors = await Author.find({});
+        const genres = await Genre.find({});
+        res.render('add-book', { authors, genres });
+    } catch (err) {
+        next(err);
+    }
 });
 
-// GET one book by ID
+// GET single book by ID
 router.get('/:id', async (req, res, next) => {
     try {
-        const books = await readBooks();
-        const book = books.find(b => b.id == req.params.id);
-        if (!book) return res.status(404).send('Book not found');
+        const book = await Book.findById(req.params.id).populate('author').populate('genre');
+        if (!book) {
+            return res.status(404).send('Book not found');
+        }
         res.json(book);
     } catch (err) {
         next(err);
     }
 });
 
-
-// Post
-router.post('/', validator, async (req, res, next) => {
+// POST a new book
+router.post('/', async (req, res, next) => {
     try {
-        const books = await readBooks();
-        const newBook = {
-            id: Date.now(),
-            title: req.body.title,
-            author: req.body.author,
-            genre: req.body.genre,
-        };
-        books.push(newBook);
-        await writeBooks(books);
+        
+        const newBook = new Book(req.body);
+        await newBook.save();
         res.redirect('/books');
     } catch (err) {
         next(err);
     }
 });
 
-
-// Patch
+// PATCH/PUT to update a book
 router.patch('/:id', async (req, res, next) => {
     try {
-        const books = await readBooks();
-        const book = books.find(b => b.id == req.params.id);
-        if (!book) return res.status(404).send('Book not found');
-
-        Object.assign(book, req.body); // Merge changes
-        await writeBooks(books);
-        res.json(book);
+        const updatedBook = await Book.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        if (!updatedBook) {
+            return res.status(404).send('Book not found');
+        }
+        res.json(updatedBook);
     } catch (err) {
         next(err);
     }
 });
 
-// Delete
-
+// DELETE a book
 router.delete('/:id', async (req, res, next) => {
     try {
-        let books = await readBooks();
-        const initialLength = books.length;
-        books = books.filter(b => b.id != req.params.id);
-
-        if (books.length === initialLength) {
+        const deletedBook = await Book.findByIdAndDelete(req.params.id);
+        if (!deletedBook) {
             return res.status(404).send('Book not found');
         }
-
-        await writeBooks(books);
-        res.sendStatus(204);
+        res.status(204).send(); // 204 No Content for successful deletion
     } catch (err) {
         next(err);
     }

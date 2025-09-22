@@ -5,25 +5,34 @@
     <title>Add a Book</title>
     <link rel="stylesheet" href="../styles/sytles.css">
 </head>
+    <body>
+        <h1>Add a New Book</h1>
+        <nav>
+            <a href="/">Home</a> | <a href="/books">View Books</a>
+        </nav>
+        <form action="/books" method="POST">
+            <label>Title:</label>
+            <input type="text" name="title" required><br>
 
-<body>
-    <h1>Add a New Book</h1>
-    <nav>
-        <a href="/">Home</a> | <a href="/books">View Books</a>
-    </nav>
+            <label>Author:</label>
+            <select name="author" required>
+                <% authors.forEach(author=> { %>
+                    <option value="<%= author._id %>">
+                        <%= author.name %>
+                    </option>
+                    <% }) %>
+            </select><br>
 
-    <form action="/books" method="POST">
-        <label>Title:</label>
-        <input type="text" name="title" required><br>
+            <label>Genre:</label>
+            <select name="genre" required>
+                <% genres.forEach(genre=> { %>
+                    <option value="<%= genre._id %>">
+                        <%= genre.name %>
+                    </option>
+                    <% }) %>
+            </select><br>
 
-        <label>Author:</label>
-        <input type="text" name="author" required><br>
-
-        <label>Genre:</label>
-        <input type="text" name="genre" required><br>
-
-        <button type="submit">Add Book</button>
-    </form>
-</body>
-
+            <button type="submit">Add Book</button>
+        </form>
+    </body>
 </html>

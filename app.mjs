@@ -1,6 +1,5 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
 import booksRoute from './routes/books.mjs';
 import logger from './middleware/logger.mjs';
 import connectDB from './connection/conn.mjs'
