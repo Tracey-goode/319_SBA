@@ -1,9 +1,16 @@
 import express from 'express';
+import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 import booksRoute from './routes/books.mjs';
 import logger from './middleware/logger.mjs';
+import connectDB from './connection/conn.mjs'
+
+dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
+
+connectDB()
 
 //Middleware
 app.use(logger);
