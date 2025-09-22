@@ -61,5 +61,18 @@ const seedData = async () => {
                 publishDate: book.publishDate
             };
         });
+        await Book.insertMany(seededBooks);
+        console.log('Books seeded!');
+
+    } catch (err) {
+        console.error('Error seeding database:', err);
+    } finally {
+        // Disconnect from the database
+        await mongoose.disconnect();
+        console.log('Disconnected from MongoDB.');
+    }
+};
+
+seedData();
         
 
