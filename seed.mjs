@@ -34,4 +34,32 @@ const seedData = async () => {
             { name: 'J.D. Salinger', bio: 'An American writer known for his novel "The Catcher in the Rye".', birthYear: 1919 },
             { name: 'F. Scott Fitzgerald', bio: 'An American novelist and short story writer.', birthYear: 1896 }
         ];
+        const books = [
+            { title: 'The Hobbit', author: 'J.R.R. Tolkien', genre: 'Fantasy', publishDate: new Date('1937-09-21') },
+            { title: 'The Lord of the Rings', author: 'J.R.R. Tolkien', genre: 'Fantasy', publishDate: new Date('1954-07-29') },
+            { title: '1984', author: 'George Orwell', genre: 'Dystopian', publishDate: new Date('1949-06-08') },
+            { title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', genre: 'Classic', publishDate: new Date('1925-04-10') },
+            { title: 'Pride and Prejudice', author: 'Jane Austen', genre: 'Romance', publishDate: new Date('1813-01-28') },
+            { title: 'To Kill a Mockingbird', author: 'Harper Lee', genre: 'Classic', publishDate: new Date('1960-07-11') }
+        ];
+
+        // Insert Genres and Authors first to get their IDs
+        const insertedGenres = await Genre.insertMany(genres);
+        console.log('Genres seeded!');
+
+        const insertedAuthors = await Author.insertMany(authors);
+        console.log('Authors seeded!');
+
+        
+        const seededBooks = books.map(book => {
+            const author = insertedAuthors.find(a => a.name === book.author);
+            const genre = insertedGenres.find(g => g.name === book.genre);
+            return {
+                title: book.title,
+                author: author._id,
+                genre: genre._id,
+                publishDate: book.publishDate
+            };
+        });
+        
 
